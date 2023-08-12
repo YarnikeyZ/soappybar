@@ -3,11 +3,12 @@ import configparser
 from os.path import abspath as wd
 from os import listdir
 import simpleaudio
+import platform
 
-config = configparser.ConfigParser()
-config.read(f'{wd("")}/soap_config.ini')
-
-def preloadSounds(sounds):
+def preloadSounds(sounds) -> list:
+    """
+    Preloads every sound from given list
+    """
     soundsLoaded = []
     for sound in sounds:
         soundName = sound.replace(".wav", "")
@@ -15,7 +16,10 @@ def preloadSounds(sounds):
         soundsLoaded.append((soundName, soundData))
     return soundsLoaded
 
-def addSoundButton(window, sound, cxr):
+def addSoundButton(window, sound, cxr) -> list:
+    """
+    Adds a button with sound on a window with set position 
+    """
     btn = Button(master=window,
                  text=sound[0],
                  command=lambda: sound[1].play()
@@ -40,15 +44,27 @@ def addSoundButton(window, sound, cxr):
     return cxr
 
 def main():
+    global config
     try:
+        # Config reading
+        pathSymbol = '/' if platform.system() == "Linux" else '\\'
+        fullPath = __file__
+        lastPathSymbol = fullPath.rfind(pathSymbol)
+
+        config = configparser.ConfigParser()
+        config.read(f'{fullPath[:lastPathSymbol-len(fullPath)+1]}config.ini')
+
+        # Window setup
         window = Tk()
         window.title(config['window']['title'])
         window.configure(bg=config['colors']['window_bg'])
 
+        # Getting and preloading of sounds
         sounds = listdir(config['btns']['folder'])
         sounds.sort()
         sounds = preloadSounds(sounds)
 
+        # Putting every sound on corresponding button
         cxr = [0, 0]
         for sound in sounds:
             cxr = addSoundButton(window, sound, cxr)
